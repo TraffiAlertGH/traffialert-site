@@ -1,0 +1,4 @@
+window.TRAFFIALERT_ADMIN = {
+  supabaseUrl: "https://aayygoxexboduevbmjgi.supabase.co",
+  supabaseAnonKey: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFheXlnb3hleGJvZHVldmJtamdpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTQyNTU3MTQsImV4cCI6MjEwOTgzMTcxNH0.J8YG5H36eCaj3wza5FYh5Vlk8hdxAzS7UPAfDzf9i7k"
+};
