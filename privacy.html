@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Privacy Policy — TraffiAlert GH</title>
+  <meta name="description" content="Privacy Policy for TraffiAlert GH, the free camera and traffic alert app for drivers in Ghana." />
+  <meta name="theme-color" content="#000000" />
+  <link rel="canonical" href="https://traffialert.com/privacy.html" />
+  <link rel="icon" href="assets/favicon.ico" sizes="any" />
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png" />
+  <link rel="apple-touch-icon" href="assets/apple-touch-icon.png" />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://traffialert.com/privacy.html" />
+  <meta property="og:title" content="Privacy Policy — TraffiAlert GH" />
+  <meta property="og:description" content="How TraffiAlert GH uses location and data for Ghana drivers." />
+  <meta property="og:image" content="https://traffialert.com/assets/og-image.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700&family=Space+Grotesk:wght@600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #050505; --gold: #FCD116; --red: #CE1126; --green: #006B3F;
+      --text: #f4f4f5; --muted: #a1a1aa;
+      --glass: rgba(255,255,255,0.07); --glass-border: rgba(255,255,255,0.14);
+      --font: "Sora", system-ui, sans-serif; --display: "Space Grotesk", "Sora", system-ui, sans-serif;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg); color: var(--text); font-family: var(--font);
+      line-height: 1.65; min-height: 100%; -webkit-font-smoothing: antialiased;
+    }
+    .bg-stage {
+      position: fixed; inset: 0; z-index: -2; pointer-events: none;
+      background: radial-gradient(900px 600px at 0% 0%, #1a0a0c 0%, transparent 55%),
+                  radial-gradient(700px 500px at 100% 80%, #0a1a12 0%, transparent 50%), #050505;
+    }
+    .blob { position: fixed; z-index: -1; pointer-events: none; border-radius: 50%; filter: blur(70px); opacity: 0.3; }
+    .blob-r { width: 280px; height: 280px; background: var(--red); top: -40px; left: -60px; }
+    .blob-n { width: 260px; height: 260px; background: var(--green); bottom: 10%; right: -40px; }
+    a { color: var(--gold); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    .wrap { max-width: 720px; margin: 0 auto; padding: 1.5rem 1.15rem 3rem; }
+    .back { display: inline-flex; margin-bottom: 1.1rem; font-weight: 600; font-size: 0.95rem; }
+    .glass {
+      background: var(--glass); border: 1px solid var(--glass-border); border-radius: 18px;
+      padding: 1.15rem 1.2rem; margin: 1rem 0;
+      -webkit-backdrop-filter: blur(18px); backdrop-filter: blur(18px);
+      box-shadow: 0 8px 28px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.12);
+    }
+    @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+      .glass { background: rgba(18,18,20,0.94); }
+    }
+    .brand-row { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.75rem; }
+    .brand-row img { width: 48px; height: 48px; border-radius: 12px; border: 1px solid var(--glass-border); }
+    h1 { font-family: var(--display); color: var(--gold); font-size: 1.55rem; margin-bottom: 0.2rem; }
+    .updated { color: var(--muted); font-size: 0.88rem; margin-bottom: 1rem; }
+    .kente { display: flex; width: 88px; height: 3px; border-radius: 2px; overflow: hidden; margin-bottom: 1.1rem; }
+    .kente span { flex: 1; }
+    .kente span:nth-child(1) { background: var(--red); }
+    .kente span:nth-child(2) { background: var(--gold); }
+    .kente span:nth-child(3) { background: var(--green); }
+    h2 { font-family: var(--display); font-size: 1.08rem; margin: 1.4rem 0 0.4rem; color: var(--gold); }
+    p { margin-bottom: 0.75rem; }
+    ul { margin: 0 0 0.75rem 1.2rem; }
+    li { margin-bottom: 0.35rem; color: var(--muted); }
+    footer { border-top: 1px solid var(--glass-border); margin-top: 2rem; padding-top: 1rem; color: var(--muted); font-size: 0.88rem; }
+    @media (prefers-reduced-motion: reduce) { .blob { display: none; } }
+  </style>
+</head>
+<body>
+  <div class="bg-stage" aria-hidden="true"></div>
+  <div class="blob blob-r" aria-hidden="true"></div>
+  <div class="blob blob-n" aria-hidden="true"></div>
+  <div class="wrap">
+    <a class="back" href="./">&larr; TraffiAlert GH</a>
+    <div class="brand-row">
+      <img src="assets/apple-touch-icon.png" width="48" height="48" alt="" />
+      <div>
+        <h1>Privacy Policy</h1>
+        <p class="updated" style="margin:0">Last updated: 9 November 2026</p>
+      </div>
+    </div>
+    <div class="kente" aria-hidden="true"><span></span><span></span><span></span></div>
+
+    <p>TraffiAlert GH (“the app”, “we”) helps drivers in Ghana get camera and traffic alerts. This policy explains what data we use and why.</p>
+
+    <div class="glass">
+      <h2 style="margin-top:0">Location</h2>
+      <p style="margin-bottom:0">The app uses your device’s location <strong>on the device</strong> to show nearby cameras, speed limits, map features, and alerts while you drive. Location is processed locally for these alerts. We do not sell your location data.</p>
+    </div>
+
+    <h2>What we do not do</h2>
+    <ul>
+      <li>We do not sell your personal data.</li>
+      <li>We do not sell your location history.</li>
+      <li>We do not use your data for advertising networks (today’s free app).</li>
+    </ul>
+
+    <h2>Data we may collect later</h2>
+    <p>If you opt into shared camera or traffic reports (via our backend), those reports may include the approximate location of a hazard you report. You can choose not to use that feature.</p>
+
+    <h2>Third-party services</h2>
+    <p>Map tiles and open map data may be loaded from map providers while you use the map. Their own privacy terms apply to those requests.</p>
+
+    <h2>Contact</h2>
+    <p>Questions about privacy: <a href="mailto:traffialertgh@gmail.com">traffialertgh@gmail.com</a></p>
+
+    <footer>
+      <a href="./">Home</a> · <a href="mailto:traffialertgh@gmail.com">traffialertgh@gmail.com</a>
+      <p style="margin-top:0.6rem;margin-bottom:0">© 2026 TraffiAlert GH</p>
+    </footer>
+  </div>
+</body>
+</html>

@@ -1,0 +1,7 @@
+# Local admin runtime config (public anon key only — never a service role key)
+config.js
+
+# Local env files
+.env
+.env.*
+!.env.example

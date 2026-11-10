@@ -1,0 +1,977 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>TraffiAlert GH — Speed camera &amp; limit alerts for Ghana drivers</title>
+  <meta name="description" content="Free Android app for Ghana drivers. Speed camera alerts near TraffiTech-GH cameras, speed limit warnings by road type, live map with fuel and EV charging, English voice alerts. Premium &amp; Founding Driver coming soon." />
+  <meta name="theme-color" content="#000000" />
+  <link rel="canonical" href="https://traffialert.com/" />
+  <link rel="icon" href="assets/favicon.ico" sizes="any" />
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png" />
+  <link rel="apple-touch-icon" href="assets/apple-touch-icon.png" />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://traffialert.com/" />
+  <meta property="og:title" content="TraffiAlert GH — Stay ahead of speed cameras in Ghana" />
+  <meta property="og:description" content="Free Android app: TraffiTech-GH camera alerts, speed limit warnings, live map, fuel &amp; EV stations, English voice alerts." />
+  <meta property="og:image" content="https://traffialert.com/assets/og-image.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:site_name" content="TraffiAlert GH" />
+  <meta property="og:locale" content="en_GH" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="TraffiAlert GH — Stay ahead of speed cameras in Ghana" />
+  <meta name="twitter:description" content="Free Android app for Ghana drivers. Camera alerts, speed limits, live map, voice alerts." />
+  <meta name="twitter:image" content="https://traffialert.com/assets/og-image.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #050505;
+      --gold: #FCD116;
+      --red: #CE1126;
+      --green: #006B3F;
+      --text: #f4f4f5;
+      --muted: #a1a1aa;
+      --glass: rgba(255,255,255,0.07);
+      --glass-strong: rgba(255,255,255,0.1);
+      --glass-border: rgba(255,255,255,0.14);
+      --glass-shine: rgba(255,255,255,0.22);
+      --safe-b: env(safe-area-inset-bottom, 0px);
+      --font: "Sora", system-ui, -apple-system, sans-serif;
+      --display: "Space Grotesk", "Sora", system-ui, sans-serif;
+      --radius: 20px;
+      --blur: 18px;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font);
+      line-height: 1.55;
+      min-height: 100%;
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+    }
+    a { color: var(--gold); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    img { max-width: 100%; height: auto; display: block; }
+    .sr-only { position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); border:0; }
+
+    /* ===== Atmosphere ===== */
+    .bg-stage {
+      position: fixed; inset: 0; z-index: -2; pointer-events: none;
+      background: radial-gradient(1200px 800px at 10% -10%, #1a0a0c 0%, transparent 55%),
+                  radial-gradient(900px 700px at 100% 20%, #0a1a12 0%, transparent 50%),
+                  #050505;
+    }
+    .blob {
+      position: fixed; z-index: -1; pointer-events: none;
+      border-radius: 50%; filter: blur(80px); opacity: 0.45;
+      will-change: transform;
+    }
+    .blob-r { width: 42vw; height: 42vw; max-width: 480px; max-height: 480px;
+      background: var(--red); top: -8%; left: -12%;
+      animation: drift1 28s ease-in-out infinite alternate; }
+    .blob-g { width: 38vw; height: 38vw; max-width: 420px; max-height: 420px;
+      background: var(--gold); top: 35%; right: -15%; opacity: 0.28;
+      animation: drift2 34s ease-in-out infinite alternate; }
+    .blob-n { width: 36vw; height: 36vw; max-width: 400px; max-height: 400px;
+      background: var(--green); bottom: -10%; left: 25%; opacity: 0.35;
+      animation: drift3 30s ease-in-out infinite alternate; }
+    @keyframes drift1 { to { transform: translate(12%, 18%) scale(1.12); } }
+    @keyframes drift2 { to { transform: translate(-14%, -10%) scale(1.08); } }
+    @keyframes drift3 { to { transform: translate(8%, -16%) scale(1.15); } }
+    .road-svg {
+      position: fixed; inset: 0; z-index: -1; pointer-events: none;
+      opacity: 0.18; width: 100%; height: 100%;
+    }
+    @media (max-width: 720px) {
+      .blob { filter: blur(60px); opacity: 0.32; }
+      .blob-g { display: none; } /* fewer blur layers on mobile */
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .blob { animation: none !important; }
+      html { scroll-behavior: auto; }
+      .reveal { opacity: 1 !important; transform: none !important; transition: none !important; }
+    }
+
+    /* ===== Glass ===== */
+    .glass {
+      background: var(--glass);
+      border: 1px solid var(--glass-border);
+      border-radius: var(--radius);
+      box-shadow:
+        0 8px 32px rgba(0,0,0,0.45),
+        inset 0 1px 0 var(--glass-shine);
+      -webkit-backdrop-filter: blur(var(--blur)) saturate(140%);
+      backdrop-filter: blur(var(--blur)) saturate(140%);
+      position: relative;
+    }
+    @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+      .glass, .nav, #maame-panel, .sticky-dl {
+        background: rgba(18,18,20,0.94);
+      }
+    }
+    .glass::before {
+      content: "";
+      position: absolute; inset: 0; border-radius: inherit; pointer-events: none;
+      background: linear-gradient(135deg, rgba(255,255,255,0.12) 0%, transparent 42%);
+      opacity: 0.55;
+    }
+    .glass-hover { transition: transform 0.35s ease, box-shadow 0.35s ease, border-color 0.35s ease; }
+    @media (hover: hover) {
+      .glass-hover:hover {
+        transform: translateY(-3px) rotate(-0.3deg);
+        border-color: rgba(252,209,22,0.35);
+        box-shadow: 0 14px 40px rgba(0,0,0,0.55), inset 0 1px 0 var(--glass-shine);
+      }
+    }
+
+    .kente {
+      display: flex; height: 3px; width: 88px; border-radius: 2px; overflow: hidden;
+    }
+    .kente span { flex: 1; }
+    .kente span:nth-child(1) { background: var(--red); }
+    .kente span:nth-child(2) { background: var(--gold); }
+    .kente span:nth-child(3) { background: var(--green); }
+
+    /* ===== Layout ===== */
+    .wrap {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 0 1.15rem 6.5rem;
+    }
+    .nav {
+      position: sticky; top: 0; z-index: 40;
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 1rem; padding: 0.7rem 1rem; margin: 0.75rem auto 0;
+      max-width: 1100px;
+      background: rgba(8,8,10,0.55);
+      border: 1px solid var(--glass-border);
+      border-radius: 16px;
+      -webkit-backdrop-filter: blur(16px); backdrop-filter: blur(16px);
+      box-shadow: 0 4px 24px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.1);
+    }
+    .nav-brand { display: flex; align-items: center; gap: 0.55rem; color: var(--text); text-decoration: none; font-weight: 700; font-family: var(--display); }
+    .nav-brand img { width: 36px; height: 36px; border-radius: 10px; }
+    .nav-links { display: flex; gap: 0.85rem; align-items: center; font-size: 0.86rem; }
+    .nav-links a { color: var(--muted); text-decoration: none; }
+    .nav-links a:hover { color: var(--gold); }
+    .nav-cta {
+      background: var(--gold); color: #000 !important; font-weight: 800;
+      padding: 0.45rem 0.85rem; border-radius: 999px; font-size: 0.82rem;
+    }
+    @media (max-width: 640px) {
+      .nav-links a:not(.nav-cta) { display: none; }
+    }
+
+    /* Hero asymmetric */
+    .hero {
+      display: grid; gap: 1.75rem; align-items: center;
+      padding: 2rem 0 1rem;
+      grid-template-columns: 1fr;
+    }
+    @media (min-width: 860px) {
+      .hero { grid-template-columns: 1.05fr 0.95fr; gap: 2.25rem; padding: 2.75rem 0 1.5rem; }
+    }
+    .hero-copy { position: relative; }
+    .hero-badge {
+      display: inline-flex; align-items: center; gap: 0.4rem;
+      font-size: 0.75rem; font-weight: 700; letter-spacing: 0.04em;
+      text-transform: uppercase; color: var(--gold);
+      background: rgba(252,209,22,0.08); border: 1px solid rgba(252,209,22,0.25);
+      padding: 0.35rem 0.7rem; border-radius: 999px; margin-bottom: 1rem;
+    }
+    .hero h1 {
+      font-family: var(--display);
+      font-size: clamp(1.85rem, 5.5vw, 3.15rem);
+      line-height: 1.08; font-weight: 700; letter-spacing: -0.02em;
+      margin-bottom: 0.85rem;
+    }
+    .hero h1 em { font-style: normal; color: var(--gold); }
+    .hero .lede { color: var(--muted); font-size: 1.05rem; max-width: 34rem; margin-bottom: 1.35rem; }
+    .hero-actions { display: flex; flex-wrap: wrap; gap: 0.65rem; align-items: center; }
+    .cta {
+      display: inline-flex; align-items: center; justify-content: center; gap: 0.45rem;
+      background: var(--gold); color: #000; font-weight: 800; font-size: 1.02rem;
+      padding: 0.95rem 1.35rem; border-radius: 14px; text-decoration: none;
+      box-shadow: 0 0 0 0 rgba(252,209,22,0.35), 0 8px 28px rgba(252,209,22,0.22);
+      transition: filter 0.2s, transform 0.2s;
+    }
+    .cta:hover { filter: brightness(1.06); text-decoration: none; transform: translateY(-1px); }
+    .cta:focus-visible { outline: 2px solid #fff; outline-offset: 3px; }
+    .ghost-btn {
+      display: inline-flex; align-items: center; padding: 0.85rem 1rem;
+      border-radius: 14px; border: 1px solid var(--glass-border);
+      color: var(--muted); font-size: 0.9rem; background: rgba(255,255,255,0.03);
+    }
+    .ghost-btn:hover { color: var(--gold); border-color: rgba(252,209,22,0.4); text-decoration: none; }
+    .cta-note { margin-top: 0.75rem; font-size: 0.86rem; color: var(--muted); }
+    .install-tip { margin-top: 0.55rem; font-size: 0.8rem; color: #777; max-width: 28rem; }
+
+    /* Phone mockup */
+    .hero-visual { display: flex; justify-content: center; }
+    .phone {
+      width: min(280px, 78vw);
+      aspect-ratio: 9/17.5;
+      border-radius: 36px;
+      padding: 10px;
+      background: linear-gradient(160deg, #2a2a2e, #0c0c0e);
+      border: 1px solid rgba(255,255,255,0.18);
+      box-shadow: 0 30px 60px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.2);
+      position: relative;
+    }
+    .phone-notch {
+      position: absolute; top: 14px; left: 50%; transform: translateX(-50%);
+      width: 38%; height: 18px; background: #000; border-radius: 12px; z-index: 2;
+    }
+    .phone-screen {
+      height: 100%; border-radius: 28px; overflow: hidden;
+      background:
+        linear-gradient(180deg, rgba(0,0,0,0.15), rgba(0,0,0,0.55)),
+        linear-gradient(135deg, #1a2a22 0%, #0d1520 45%, #1a1210 100%);
+      position: relative;
+      display: flex; flex-direction: column;
+    }
+    .map-grid {
+      position: absolute; inset: 0; opacity: 0.35;
+      background-image:
+        linear-gradient(rgba(252,209,22,0.12) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(252,209,22,0.08) 1px, transparent 1px);
+      background-size: 28px 28px;
+    }
+    .route-line {
+      position: absolute; left: 42%; top: 18%; width: 3px; height: 58%;
+      background: linear-gradient(var(--gold), var(--green));
+      border-radius: 3px; box-shadow: 0 0 12px rgba(252,209,22,0.6);
+    }
+    .route-line::after {
+      content: ""; position: absolute; bottom: -6px; left: 50%; transform: translateX(-50%);
+      width: 12px; height: 12px; border-radius: 50%; background: var(--gold);
+      box-shadow: 0 0 14px var(--gold);
+    }
+    .alert-banner {
+      margin: 3.2rem 0.7rem 0; padding: 0.55rem 0.65rem;
+      background: rgba(206,17,38,0.85); border: 1px solid rgba(255,255,255,0.2);
+      border-radius: 12px; font-size: 0.72rem; font-weight: 700;
+      box-shadow: 0 8px 20px rgba(206,17,38,0.35); position: relative; z-index: 1;
+    }
+    .alert-banner small { display: block; font-weight: 600; opacity: 0.9; font-size: 0.65rem; margin-top: 0.15rem; }
+    .phone-bottom {
+      margin-top: auto; padding: 0.75rem; position: relative; z-index: 1;
+      display: grid; grid-template-columns: 1fr auto; gap: 0.55rem; align-items: end;
+    }
+    .speed-gauge {
+      background: rgba(0,0,0,0.55); border: 1px solid rgba(255,255,255,0.15);
+      border-radius: 16px; padding: 0.55rem 0.7rem; -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px);
+    }
+    .speed-gauge .num { font-family: var(--display); font-size: 1.8rem; font-weight: 700; line-height: 1; color: var(--gold); }
+    .speed-gauge .unit { font-size: 0.65rem; color: var(--muted); }
+    .limit-sign {
+      width: 56px; height: 56px; border-radius: 50%;
+      background: #fff; border: 5px solid var(--red);
+      display: grid; place-items: center; color: #000;
+      font-family: var(--display); font-weight: 700; font-size: 1.15rem;
+      box-shadow: 0 6px 16px rgba(0,0,0,0.4);
+    }
+
+    /* Sections */
+    section { margin: 2.75rem 0; }
+    .sec-head { margin-bottom: 1.15rem; max-width: 36rem; }
+    .sec-title {
+      font-family: var(--display); font-size: clamp(1.35rem, 3.5vw, 1.85rem);
+      font-weight: 700; letter-spacing: -0.02em; margin: 0.45rem 0 0.35rem;
+    }
+    .sec-sub { color: var(--muted); font-size: 0.95rem; }
+
+    .feat-board {
+      display: grid; gap: 0.85rem;
+      grid-template-columns: 1fr;
+    }
+    @media (min-width: 720px) {
+      .feat-board { grid-template-columns: 1.2fr 1fr; grid-template-rows: auto auto; }
+      .feat-board .feat:first-child { grid-row: span 2; min-height: 100%; }
+    }
+    .feat { padding: 1.2rem 1.15rem; overflow: hidden; }
+    .feat .ico {
+      width: 42px; height: 42px; border-radius: 12px;
+      display: grid; place-items: center;
+      background: rgba(252,209,22,0.1); border: 1px solid rgba(252,209,22,0.25);
+      margin-bottom: 0.85rem;
+    }
+    .feat .ico svg { width: 22px; height: 22px; }
+    .feat h3 { font-family: var(--display); font-size: 1.08rem; margin-bottom: 0.35rem; }
+    .feat p { color: var(--muted); font-size: 0.92rem; }
+
+    .steps { display: grid; gap: 0.75rem; }
+    @media (min-width: 800px) { .steps { grid-template-columns: repeat(3, 1fr); } }
+    .step { padding: 1.15rem; }
+    .step-num {
+      font-family: var(--display); font-size: 2rem; font-weight: 700;
+      color: var(--gold); line-height: 1; margin-bottom: 0.45rem; opacity: 0.9;
+    }
+    .step h3 { font-size: 1.02rem; margin-bottom: 0.3rem; }
+    .step p { color: var(--muted); font-size: 0.9rem; }
+
+    .soon-banner {
+      display: inline-block; background: var(--red); color: #fff;
+      font-size: 0.7rem; font-weight: 800; letter-spacing: 0.08em;
+      text-transform: uppercase; padding: 0.25rem 0.55rem; border-radius: 6px;
+    }
+    .price-grid { display: grid; gap: 0.85rem; }
+    @media (min-width: 640px) { .price-grid { grid-template-columns: 1fr 1fr; } }
+    .price-card { padding: 1.25rem 1.15rem; }
+    .price-card h3 { color: var(--gold); font-family: var(--display); margin-bottom: 0.4rem; }
+    .price-card .price { font-family: var(--display); font-size: 1.45rem; font-weight: 700; margin-bottom: 0.25rem; }
+    .price-card .price small { font-size: 0.85rem; font-weight: 600; color: var(--muted); }
+    .price-card p { color: var(--muted); font-size: 0.9rem; }
+    .momo-note { margin-top: 0.85rem; font-size: 0.88rem; color: var(--muted); }
+
+    /* Meet Maame */
+    .meet {
+      display: grid; gap: 1rem; align-items: center;
+      padding: 1rem; grid-template-columns: 1fr;
+    }
+    @media (min-width: 640px) {
+      .meet { grid-template-columns: 140px 1fr; padding: 1.15rem 1.25rem; }
+    }
+    .meet-photo {
+      width: 120px; height: 120px; border-radius: 50%;
+      object-fit: cover; margin: 0 auto;
+      border: 3px solid var(--gold);
+      box-shadow: 0 0 0 4px rgba(252,209,22,0.15), 0 12px 28px rgba(0,0,0,0.4);
+    }
+    @media (min-width: 640px) { .meet-photo { width: 128px; height: 128px; margin: 0; } }
+    .meet h3 { font-family: var(--display); font-size: 1.15rem; margin-bottom: 0.25rem; }
+    .meet p { color: var(--muted); font-size: 0.92rem; }
+    .meet .ask-btn {
+      display: inline-flex; margin-top: 0.7rem; font-size: 0.85rem; font-weight: 700;
+      color: #000; background: var(--gold); border: none; border-radius: 999px;
+      padding: 0.45rem 0.9rem; cursor: pointer; font-family: inherit;
+    }
+
+    details.faq {
+      padding: 0.95rem 1.05rem; margin-bottom: 0.55rem;
+    }
+    details.faq summary {
+      cursor: pointer; font-weight: 700; list-style: none;
+      display: flex; justify-content: space-between; gap: 0.75rem; align-items: center;
+      font-family: var(--display);
+    }
+    details.faq summary::-webkit-details-marker { display: none; }
+    details.faq summary::after { content: "+"; color: var(--gold); font-size: 1.25rem; }
+    details.faq[open] summary::after { content: "−"; }
+    details.faq p { margin-top: 0.55rem; color: var(--muted); font-size: 0.93rem; }
+
+    footer {
+      border-top: 1px solid var(--glass-border);
+      padding-top: 1.5rem; margin-top: 2.5rem; text-align: center; color: var(--muted); font-size: 0.9rem;
+    }
+    .socials { display: flex; flex-wrap: wrap; justify-content: center; gap: 0.5rem; margin: 0.85rem 0 1rem; }
+    .socials a {
+      display: inline-flex; align-items: center; gap: 0.35rem;
+      border: 1px solid var(--glass-border); background: var(--glass);
+      color: var(--text); padding: 0.4rem 0.7rem; border-radius: 999px; font-size: 0.8rem;
+      text-decoration: none; -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
+    }
+    .socials a:hover { border-color: var(--gold); color: var(--gold); text-decoration: none; }
+    .socials a.wa-link[hidden] { display: none !important; }
+    footer .links { display: grid; gap: 0.35rem; margin-top: 0.5rem; }
+    .copy { margin-top: 1.1rem; font-size: 0.78rem; color: #666; }
+
+    /* Sticky mobile download */
+    .sticky-dl {
+      position: fixed; left: 12px; right: 12px; bottom: calc(14px + var(--safe-b));
+      z-index: 50; display: none; align-items: center; justify-content: space-between;
+      gap: 0.75rem; padding: 0.65rem 0.75rem 0.65rem 1rem;
+      background: rgba(10,10,12,0.72); border: 1px solid var(--glass-border);
+      border-radius: 999px; -webkit-backdrop-filter: blur(16px); backdrop-filter: blur(16px);
+      box-shadow: 0 10px 32px rgba(0,0,0,0.5);
+    }
+    .sticky-dl span { font-size: 0.82rem; color: var(--muted); }
+    .sticky-dl a {
+      background: var(--gold); color: #000; font-weight: 800; font-size: 0.85rem;
+      padding: 0.55rem 0.95rem; border-radius: 999px; text-decoration: none; white-space: nowrap;
+    }
+    @media (max-width: 720px) {
+      .sticky-dl { display: flex; }
+      body { padding-bottom: 4.5rem; }
+      #maame-root { bottom: calc(72px + var(--safe-b)); }
+    }
+
+    /* Reveal */
+    .reveal { opacity: 0; transform: translateY(18px); transition: opacity 0.6s ease, transform 0.6s ease; }
+    .reveal.in { opacity: 1; transform: none; }
+
+    /* ===== Maame ===== */
+    #maame-root {
+      position: fixed; z-index: 90; right: 14px;
+      bottom: calc(14px + var(--safe-b)); font-family: inherit;
+    }
+    #maame-bubble {
+      width: 60px; height: 60px; border-radius: 50%;
+      border: 2px solid var(--gold); background: #111; cursor: pointer;
+      box-shadow: 0 6px 24px rgba(0,0,0,0.55), 0 0 0 4px rgba(252,209,22,0.12);
+      display: grid; place-items: center; padding: 0; position: relative;
+    }
+    #maame-bubble:focus-visible { outline: 2px solid #fff; outline-offset: 3px; }
+    #maame-bubble .avatar-img,
+    .maame-head .avatar-img,
+    .msg.bot .avatar-img {
+      width: 100%; height: 100%; border-radius: 50%; object-fit: cover; display: block;
+    }
+    #maame-bubble .avatar-wrap {
+      width: 50px; height: 50px; border-radius: 50%; overflow: hidden;
+    }
+    #maame-bubble .dot {
+      position: absolute; top: 2px; right: 2px; width: 12px; height: 12px;
+      background: var(--green); border: 2px solid #000; border-radius: 50%;
+    }
+    #maame-panel {
+      position: absolute; right: 0; bottom: 72px;
+      width: min(370px, calc(100vw - 28px));
+      height: min(520px, calc(100vh - 120px));
+      display: none; flex-direction: column; overflow: hidden;
+      background: rgba(12,12,14,0.72);
+      border: 1px solid var(--glass-border); border-radius: 22px;
+      -webkit-backdrop-filter: blur(22px) saturate(150%);
+      backdrop-filter: blur(22px) saturate(150%);
+      box-shadow: 0 20px 50px rgba(0,0,0,0.65), inset 0 1px 0 rgba(255,255,255,0.12);
+    }
+    #maame-panel.open { display: flex; }
+    .maame-head {
+      display: flex; align-items: center; gap: 0.65rem;
+      padding: 0.75rem 0.85rem; border-bottom: 1px solid var(--glass-border);
+      background: rgba(255,255,255,0.04);
+    }
+    .maame-head .avatar-wrap {
+      width: 40px; height: 40px; border-radius: 50%; overflow: hidden;
+      border: 2px solid var(--gold); flex-shrink: 0;
+    }
+    .maame-head .meta { flex: 1; min-width: 0; }
+    .maame-head .meta strong { display: block; font-size: 0.95rem; }
+    .maame-head .meta span { font-size: 0.72rem; color: #3dd68c; }
+    .maame-close {
+      background: transparent; border: none; color: var(--muted);
+      font-size: 1.4rem; cursor: pointer; line-height: 1; padding: 0.2rem 0.35rem;
+    }
+    .maame-close:hover { color: var(--text); }
+    .maame-intro {
+      display: flex; gap: 0.65rem; align-items: center;
+      padding: 0.65rem 0.85rem; border-bottom: 1px solid rgba(255,255,255,0.06);
+      background: rgba(252,209,22,0.05);
+    }
+    .maame-intro img {
+      width: 52px; height: 64px; object-fit: cover; object-position: top center;
+      border-radius: 10px; border: 1px solid var(--glass-border);
+    }
+    .maame-intro p { font-size: 0.78rem; color: var(--muted); line-height: 1.35; }
+    #maame-msgs {
+      flex: 1; overflow-y: auto; padding: 0.85rem;
+      display: flex; flex-direction: column; gap: 0.55rem;
+      -webkit-overflow-scrolling: touch;
+    }
+    .msg-row { display: flex; gap: 0.4rem; align-items: flex-end; max-width: 96%; }
+    .msg-row.bot { align-self: flex-start; }
+    .msg-row.user { align-self: flex-end; flex-direction: row-reverse; }
+    .msg-row .avatar-wrap {
+      width: 26px; height: 26px; border-radius: 50%; overflow: hidden; flex-shrink: 0;
+      border: 1px solid rgba(252,209,22,0.5);
+    }
+    .msg {
+      padding: 0.6rem 0.75rem; border-radius: 14px; font-size: 0.88rem;
+      line-height: 1.45; white-space: pre-wrap;
+    }
+    .msg.bot {
+      background: rgba(255,255,255,0.07); border: 1px solid var(--glass-border);
+      color: var(--text); border-bottom-left-radius: 4px;
+    }
+    .msg.user {
+      background: var(--gold); color: #000; font-weight: 600;
+      border-bottom-right-radius: 4px;
+    }
+    .chips { display: flex; flex-wrap: wrap; gap: 0.4rem; padding: 0 0.85rem 0.55rem; }
+    .chip {
+      background: rgba(255,255,255,0.06); border: 1px solid rgba(252,209,22,0.35);
+      color: var(--gold); font-size: 0.76rem; padding: 0.35rem 0.65rem;
+      border-radius: 999px; cursor: pointer; font-family: inherit;
+    }
+    .chip:hover { background: rgba(252,209,22,0.12); }
+    .chip:focus-visible { outline: 2px solid var(--gold); }
+    .maame-wa { margin: 0 0.85rem 0.45rem; }
+    .maame-wa a {
+      display: flex; align-items: center; justify-content: center; gap: 0.4rem;
+      background: #128C7E; color: #fff; font-weight: 700; font-size: 0.85rem;
+      padding: 0.55rem 0.75rem; border-radius: 10px; text-decoration: none;
+    }
+    .maame-wa a:hover { filter: brightness(1.08); text-decoration: none; }
+    .maame-wa[hidden] { display: none !important; }
+    .maame-input-row {
+      display: flex; gap: 0.4rem;
+      padding: 0.55rem 0.7rem calc(0.65rem + var(--safe-b));
+      border-top: 1px solid var(--glass-border); background: rgba(0,0,0,0.25);
+    }
+    #maame-input {
+      flex: 1; background: rgba(0,0,0,0.35); border: 1px solid var(--glass-border);
+      border-radius: 10px; color: var(--text); padding: 0.55rem 0.7rem;
+      font-size: 0.92rem; font-family: inherit; min-width: 0;
+    }
+    #maame-input:focus { outline: 1px solid var(--gold); border-color: var(--gold); }
+    #maame-send {
+      background: var(--gold); color: #000; border: none; border-radius: 10px;
+      font-weight: 800; padding: 0 0.9rem; cursor: pointer; font-size: 0.9rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="bg-stage" aria-hidden="true"></div>
+  <div class="blob blob-r" aria-hidden="true"></div>
+  <div class="blob blob-g" aria-hidden="true"></div>
+  <div class="blob blob-n" aria-hidden="true"></div>
+  <svg class="road-svg" viewBox="0 0 1200 800" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+    <path d="M-50 650 C 200 500, 350 720, 550 480 S 850 200, 1250 320" fill="none" stroke="#FCD116" stroke-width="2" stroke-dasharray="10 14" opacity="0.7"/>
+    <path d="M-20 720 C 260 560, 400 780, 620 540 S 920 260, 1280 400" fill="none" stroke="#CE1126" stroke-width="1.5" stroke-dasharray="4 18" opacity="0.5"/>
+    <path d="M100 -20 C 280 180, 180 320, 400 420 S 700 600, 900 820" fill="none" stroke="#006B3F" stroke-width="1.5" stroke-dasharray="8 12" opacity="0.55"/>
+    <circle cx="550" cy="480" r="4" fill="#FCD116"/>
+    <circle cx="900" cy="280" r="3" fill="#CE1126"/>
+  </svg>
+
+  <div class="wrap">
+    <nav class="nav" aria-label="Primary">
+      <a class="nav-brand" href="./">
+        <img src="assets/apple-touch-icon.png" width="36" height="36" alt="" />
+        TraffiAlert GH
+      </a>
+      <div class="nav-links">
+        <a href="#features">Features</a>
+        <a href="#how">How it works</a>
+        <a href="#faq">FAQ</a>
+        <a class="nav-cta" href="https://github.com/TraffiAlertGH/traffialert-site/releases/latest/download/TraffiAlertGH-arm64-v8a.apk">Download</a>
+      </div>
+    </nav>
+
+    <header class="hero">
+      <div class="hero-copy">
+        <div class="hero-badge">
+          <span class="kente" aria-hidden="true"><span></span><span></span><span></span></span>
+          Free for Android · Ghana roads
+        </div>
+        <h1>Stay ahead of <em>speed cameras</em> &amp; limits on Ghana roads</h1>
+        <p class="lede">TraffiTech-GH camera alerts, road speed limits, fuel &amp; EV stations, and English voice prompts — so you keep your eyes on the road.</p>
+        <div class="hero-actions">
+          <a class="cta" id="download-btn" href="https://github.com/TraffiAlertGH/traffialert-site/releases/latest/download/TraffiAlertGH-arm64-v8a.apk">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 3v12m0 0l-4-4m4 4l4-4M5 19h14" stroke="#000" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            Download for Android
+          </a>
+          <span class="ghost-btn">iOS coming soon</span>
+        </div>
+        <p class="cta-note">Older phone? <a href="https://github.com/TraffiAlertGH/traffialert-site/releases/latest/download/TraffiAlertGH-armeabi-v7a.apk">Download the 32-bit version</a></p>
+        <p class="cta-note" id="app-version" hidden></p>
+        <p class="install-tip">First install: allow installs from this browser / unknown sources when Android asks. The app is free.</p>
+      </div>
+      <div class="hero-visual" aria-hidden="true">
+        <div class="phone">
+          <div class="phone-notch"></div>
+          <div class="phone-screen">
+            <div class="map-grid"></div>
+            <div class="route-line"></div>
+            <div class="alert-banner">
+              500 m · Speed camera ahead
+              <small>Slow down · TraffiTech-GH</small>
+            </div>
+            <div class="phone-bottom">
+              <div class="speed-gauge">
+                <div class="num">62</div>
+                <div class="unit">km/h · current</div>
+              </div>
+              <div class="limit-sign">50</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <section id="features" class="reveal" aria-labelledby="features-title">
+      <div class="sec-head">
+        <div class="kente" aria-hidden="true"><span></span><span></span><span></span></div>
+        <h2 class="sec-title" id="features-title">Built for Ghana drivers</h2>
+        <p class="sec-sub">What you get in the free app today.</p>
+      </div>
+      <div class="feat-board">
+        <article class="feat glass glass-hover">
+          <div class="ico" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="8" stroke="#FCD116" stroke-width="1.8"/><circle cx="12" cy="12" r="3" fill="#CE1126"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2" stroke="#FCD116" stroke-width="1.6" stroke-linecap="round"/></svg>
+          </div>
+          <h3>Speed camera alerts</h3>
+          <p>Get warned as you approach TraffiTech-GH speed cameras so you can slow down in time — with English voice so you don’t stare at the screen.</p>
+        </article>
+        <article class="feat glass glass-hover">
+          <div class="ico" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="#CE1126" stroke-width="2.4"/><circle cx="12" cy="12" r="7.2" stroke="#fff" stroke-width="1.2"/><text x="12" y="15.5" text-anchor="middle" fill="#fff" font-size="7" font-weight="700" font-family="Space Grotesk,sans-serif">50</text></svg>
+          </div>
+          <h3>Speed limit by road type</h3>
+          <p>See the limit for the road you’re on and get a clear warning when you’re over it.</p>
+        </article>
+        <article class="feat glass glass-hover">
+          <div class="ico" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none"><path d="M4 18l6-14 4 8 2-4 4 10H4z" stroke="#006B3F" stroke-width="1.7" stroke-linejoin="round"/><circle cx="17" cy="7" r="2" fill="#FCD116"/></svg>
+          </div>
+          <h3>Live map &amp; stations</h3>
+          <p>A driving map with cameras plus nearby fuel and EV charging stations.</p>
+        </article>
+        <article class="feat glass glass-hover">
+          <div class="ico" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none"><path d="M3 14c3-2 5 2 8 0s5-2 8 0" stroke="#FCD116" stroke-width="1.8" stroke-linecap="round"/><path d="M3 18c3-2 5 2 8 0s5-2 8 0" stroke="#FCD116" stroke-width="1.8" stroke-linecap="round" opacity=".55"/><circle cx="18.5" cy="7.5" r="3.2" stroke="#FCD116" stroke-width="1.6"/><path d="M18.5 5.6v1.9l1.2.7" stroke="#FCD116" stroke-width="1.4" stroke-linecap="round"/></svg>
+          </div>
+          <h3>English voice alerts</h3>
+          <p>Hands-free spoken alerts so you keep your eyes on Accra traffic, not the phone.</p>
+        </article>
+      </div>
+    </section>
+
+    <section id="how" class="reveal" aria-labelledby="how-title">
+      <div class="sec-head">
+        <div class="kente" aria-hidden="true"><span></span><span></span><span></span></div>
+        <h2 class="sec-title" id="how-title">How it works</h2>
+        <p class="sec-sub">Three steps. You’re ready for the road.</p>
+      </div>
+      <div class="steps">
+        <div class="step glass glass-hover">
+          <div class="step-num">01</div>
+          <h3>Download the APK</h3>
+          <p>Tap Download for Android. Allow the install when your phone asks.</p>
+        </div>
+        <div class="step glass glass-hover">
+          <div class="step-num">02</div>
+          <h3>Allow location while driving</h3>
+          <p>TraffiAlert uses your location on the device to spot nearby cameras and limits.</p>
+        </div>
+        <div class="step glass glass-hover">
+          <div class="step-num">03</div>
+          <h3>Drive with voice alerts on</h3>
+          <p>Keep the app open and listen for camera and speed warnings.</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="coming-soon" class="reveal" aria-labelledby="soon-title">
+      <span class="soon-banner">Coming soon</span>
+      <h2 class="sec-title" id="soon-title">Premium &amp; Founding Driver</h2>
+      <p class="sec-sub" style="margin-bottom:1rem">More tools for drivers who want the full experience. Mobile Money payment will be available when these launch — no payment form on this page yet.</p>
+      <div class="price-grid">
+        <article class="price-card glass glass-hover">
+          <h3>Premium</h3>
+          <div class="price">GH₵15 <small>/ month</small></div>
+          <div class="price">GH₵120 <small>/ year</small></div>
+          <p>7-day free trial. Unlock premium features when they roll out.</p>
+        </article>
+        <article class="price-card glass glass-hover">
+          <h3>Founding Driver</h3>
+          <div class="price">~GH₵99 <small>lifetime</small></div>
+          <p>One-time access for the first 1,000 drivers. Limited founding offer.</p>
+        </article>
+      </div>
+      <p class="momo-note">Also coming: live driver reports and a Nearby screen with mechanics &amp; towing.</p>
+    </section>
+
+    <section id="meet" class="reveal" aria-labelledby="meet-title">
+      <div class="sec-head">
+        <div class="kente" aria-hidden="true"><span></span><span></span><span></span></div>
+        <h2 class="sec-title" id="meet-title">Meet Maame Serwaa</h2>
+        <p class="sec-sub">Your TraffiAlert helper — tap the gold bubble anytime.</p>
+      </div>
+      <div class="meet glass">
+        <picture>
+          <source type="image/webp" srcset="assets/maame-avatar.webp" />
+          <img class="meet-photo" src="assets/maame-avatar.png" width="256" height="256" alt="Maame Serwaa, TraffiAlert GH helper" />
+        </picture>
+        <div>
+          <h3>Akwaaba — ask her anything about the app</h3>
+          <p>Is it free? How do I install? Which phones? Safe while driving? Premium? iOS? Maame Serwaa answers from our FAQ — and can point you to traffialertgh@gmail.com when she doesn’t know.</p>
+          <button type="button" class="ask-btn" id="open-maame">Chat with Maame Serwaa</button>
+        </div>
+      </div>
+    </section>
+
+    <section id="faq" class="reveal" aria-labelledby="faq-title">
+      <div class="sec-head">
+        <div class="kente" aria-hidden="true"><span></span><span></span><span></span></div>
+        <h2 class="sec-title" id="faq-title">FAQ</h2>
+        <p class="sec-sub">Quick answers — or ask Maame Serwaa.</p>
+      </div>
+      <details class="faq glass"><summary>Is TraffiAlert GH free?</summary><p>Yes. The Android app is free to download and use. Premium and Founding Driver options are coming later (prices shown above) and are clearly marked as coming soon.</p></details>
+      <details class="faq glass"><summary>Which phones does it work on?</summary><p>Android phones. Download the arm64 APK for most modern phones, or the 32-bit version for older devices. iOS is coming soon.</p></details>
+      <details class="faq glass"><summary>Is it safe / legal to use while driving?</summary><p>Alerts are voice-first and hands-free so you can keep your eyes on the road. Always follow Ghana road traffic laws and never interact with the screen while driving. TraffiAlert helps you notice cameras and limits — it does not encourage speeding.</p></details>
+      <details class="faq glass"><summary>Does it use a lot of data?</summary><p>Location is processed on your device for alerts. Map tiles may use a small amount of mobile data when the map is open. Camera alert data is designed to work efficiently on Ghana networks.</p></details>
+      <details class="faq glass"><summary>When is iOS coming?</summary><p>iOS is on the roadmap after the Android app is solid on the Play Store path. Follow @TraffiAlertGh on socials for updates.</p></details>
+      <details class="faq glass"><summary>How do I install the APK?</summary><p>Tap Download, open the file, and allow installs from this browser / unknown sources when Android prompts you. This is normal for apps installed outside the Play Store.</p></details>
+    </section>
+
+    <footer>
+      <strong style="color:var(--text);font-family:var(--display)">@TraffiAlertGh</strong>
+      <div class="socials">
+        <a href="https://www.facebook.com/TraffiAlertGh" target="_blank" rel="noopener">Facebook</a>
+        <a href="https://x.com/TraffiAlertGh" target="_blank" rel="noopener">X</a>
+        <a href="https://www.tiktok.com/@traffialertgh" target="_blank" rel="noopener">TikTok</a>
+        <a href="https://www.instagram.com/traffialertgh" target="_blank" rel="noopener">Instagram</a>
+        <a class="wa-link" id="footer-wa" hidden href="#" target="_blank" rel="noopener">WhatsApp</a>
+      </div>
+      <div class="links">
+        <a href="mailto:traffialertgh@gmail.com">traffialertgh@gmail.com</a>
+        <a href="privacy.html">Privacy Policy</a>
+      </div>
+      <p class="copy">© 2026 TraffiAlert GH. Made for drivers in Ghana.</p>
+    </footer>
+  </div>
+
+  <div class="sticky-dl" id="sticky-dl" role="region" aria-label="Download">
+    <span>Free on Android</span>
+    <a href="https://github.com/TraffiAlertGH/traffialert-site/releases/latest/download/TraffiAlertGH-arm64-v8a.apk">Download</a>
+  </div>
+
+  <div id="maame-root" aria-live="polite">
+    <div id="maame-panel" role="dialog" aria-label="Chat with Maame Serwaa" aria-modal="false">
+      <div class="maame-head">
+        <div class="avatar-wrap">
+          <picture>
+            <source type="image/webp" srcset="assets/maame-avatar-128.webp" />
+            <img class="avatar-img" src="assets/maame-avatar-128.png" width="40" height="40" alt="Maame Serwaa, TraffiAlert GH helper" />
+          </picture>
+        </div>
+        <div class="meta">
+          <strong>Maame Serwaa</strong>
+          <span>● Online · TraffiAlert helper</span>
+        </div>
+        <button type="button" class="maame-close" id="maame-close" aria-label="Close chat">×</button>
+      </div>
+      <div class="maame-intro">
+        <picture>
+          <source type="image/webp" srcset="assets/maame-portrait.webp" />
+          <img src="assets/maame-portrait.jpg" width="52" height="64" alt="Maame Serwaa, TraffiAlert GH helper" />
+        </picture>
+        <p>Akwaaba! I’m Maame Serwaa. Ask about install steps, phones, safety, Premium, or iOS.</p>
+      </div>
+      <div id="maame-msgs" role="log" aria-relevant="additions"></div>
+      <div class="chips" id="maame-chips" aria-label="Quick replies"></div>
+      <div class="maame-wa" id="maame-wa" hidden>
+        <a id="maame-wa-link" href="#" target="_blank" rel="noopener">Chat with Maame Serwaa on WhatsApp</a>
+      </div>
+      <form class="maame-input-row" id="maame-form" autocomplete="off">
+        <label for="maame-input" class="sr-only">Ask Maame Serwaa</label>
+        <input id="maame-input" type="text" placeholder="Ask me anything…" maxlength="240" enterkeyhint="send" />
+        <button type="submit" id="maame-send">Send</button>
+      </form>
+    </div>
+    <button type="button" id="maame-bubble" aria-label="Open chat with Maame Serwaa" aria-expanded="false" aria-controls="maame-panel">
+      <span class="avatar-wrap">
+        <picture>
+          <source type="image/webp" srcset="assets/maame-avatar-128.webp" />
+          <img class="avatar-img" src="assets/maame-avatar-128.png" width="50" height="50" alt="" />
+        </picture>
+      </span>
+      <span class="dot" aria-hidden="true"></span>
+    </button>
+  </div>
+
+  <script>
+  (function () {
+    // === Fill this when the official WhatsApp number is ready (digits only, country code, no +) ===
+    // Example: '233XXXXXXXXX'
+    // Used by: footer WhatsApp icon + Maame Serwaa panel "Chat on WhatsApp" button.
+    // Both stay hidden while this string is empty.
+    var WHATSAPP_NUMBER = '233509034444';
+
+    var WA_PREFILL = encodeURIComponent('Hi Maame Serwaa, I have a question about TraffiAlert GH');
+
+    function waUrl() {
+      if (!WHATSAPP_NUMBER) return '';
+      return 'https://wa.me/' + WHATSAPP_NUMBER + '?text=' + WA_PREFILL;
+    }
+
+    function syncWhatsApp() {
+      var url = waUrl();
+      var footer = document.getElementById('footer-wa');
+      var panel = document.getElementById('maame-wa');
+      var link = document.getElementById('maame-wa-link');
+      if (url) {
+        footer.hidden = false;
+        footer.href = url;
+        panel.hidden = false;
+        link.href = url;
+      } else {
+        footer.hidden = true;
+        panel.hidden = true;
+      }
+    }
+
+    var KB = [
+      { keys: ['free', 'cost', 'price', 'pay', 'money', 'charge', 'fee'], answer: 'Yes — TraffiAlert GH is free to download and use on Android. Premium (GH₵15/month or GH₵120/year with a 7-day trial) and Founding Driver (~GH₵99 lifetime, first 1,000 drivers) are coming later. No payment on this website yet.' },
+      { keys: ['install', 'download', 'apk', 'unknown sources', 'how do i get', 'setup'], answer: 'Tap “Download for Android” at the top. Open the APK and allow installs from this browser / unknown sources when Android asks — that’s normal outside the Play Store. Most phones need the arm64 file; older phones can use the 32-bit link under the button.' },
+      { keys: ['phone', 'android', 'device', 'which phone', 'compatible', 'samsung', 'tecno', 'infinix'], answer: 'It runs on Android. Use the main (arm64) APK on most modern phones, or the 32-bit APK for older devices. iOS is coming soon.' },
+      { keys: ['safe', 'legal', 'driving', 'hands', 'distracted', 'law'], answer: 'Alerts are voice-first and hands-free so you can keep your eyes on the road. Always follow Ghana traffic laws and don’t tap the screen while driving. TraffiAlert helps you notice cameras and limits — it does not encourage speeding.' },
+      { keys: ['premium', 'founding', 'subscription', 'lifetime', 'trial', 'momo', 'mobile money'], answer: 'Coming soon: Premium at GH₵15/month or GH₵120/year (7-day free trial), and Founding Driver lifetime access around GH₵99 for the first 1,000 drivers. Mobile Money payment will be available when these launch. There’s no payment form on this page yet.' },
+      { keys: ['ios', 'iphone', 'apple'], answer: 'iOS is coming soon — after Android is solid. Follow @TraffiAlertGh on Facebook, X, TikTok or Instagram for updates.' },
+      { keys: ['contact', 'email', 'support', 'help', 'talk', 'reach'], answer: 'Email us at traffialertgh@gmail.com — or follow @TraffiAlertGh on social media. If WhatsApp is enabled, you’ll also see a WhatsApp button in this chat.' },
+      { keys: ['camera', 'traffictech', 'traffitech', 'speed camera', 'radar'], answer: 'TraffiAlert warns you as you approach TraffiTech-GH speed cameras, with English voice alerts so you can slow down in time.' },
+      { keys: ['speed limit', 'limit', 'road type'], answer: 'The app shows speed limits by road type and warns you when you’re over the limit — plus camera alerts and a live map.' },
+      { keys: ['fuel', 'charging', 'ev', 'petrol', 'station', 'map'], answer: 'The live map shows nearby fuel stations and EV charging points, along with cameras and your route context.' },
+      { keys: ['data', 'internet', 'offline', 'mb', 'bundle'], answer: 'Location for alerts is processed on your device. Opening the map may use a little mobile data for map tiles. The app is built to work efficiently on Ghana networks.' },
+      { keys: ['nearby', 'mechanic', 'towing', 'report'], answer: 'Coming soon: live driver reports and a Nearby screen with mechanics and towing. Those aren’t in the free app yet.' },
+      { keys: ['akwaaba', 'hello', 'hi', 'hey', 'good morning', 'good evening', 'eii', 'please'], answer: 'Akwaaba! Ask me about the app, install steps, phones, safety, Premium, or iOS — or tap a quick reply below.' }
+    ];
+
+    var FALLBACK = 'Hmm, I’m not sure about that yet. Email traffialertgh@gmail.com and the team will help. You can also try a quick reply below.';
+
+    var CHIPS = [
+      { label: 'Is it free?', q: 'Is it free?' },
+      { label: 'How do I install?', q: 'How do I install?' },
+      { label: 'Which phones?', q: 'Which phones does it work on?' },
+      { label: 'Safe while driving?', q: 'Is it safe while driving?' },
+      { label: 'Premium & Founding Driver', q: 'Tell me about Premium and Founding Driver' },
+      { label: 'iOS?', q: 'When is iOS coming?' },
+      { label: 'Contact us', q: 'How do I contact you?' }
+    ];
+
+    function answerFor(text) {
+      var t = (text || '').toLowerCase();
+      var best = null, bestScore = 0;
+      for (var i = 0; i < KB.length; i++) {
+        var score = 0;
+        for (var k = 0; k < KB[i].keys.length; k++) {
+          if (t.indexOf(KB[i].keys[k]) !== -1) score += KB[i].keys[k].length;
+        }
+        if (score > bestScore) { bestScore = score; best = KB[i]; }
+      }
+      return bestScore > 0 ? best.answer : FALLBACK;
+    }
+
+    var panel = document.getElementById('maame-panel');
+    var bubble = document.getElementById('maame-bubble');
+    var closeBtn = document.getElementById('maame-close');
+    var msgs = document.getElementById('maame-msgs');
+    var chipsEl = document.getElementById('maame-chips');
+    var form = document.getElementById('maame-form');
+    var input = document.getElementById('maame-input');
+    var greeted = false;
+
+    function avatarThumb() {
+      var w = document.createElement('div');
+      w.className = 'avatar-wrap';
+      var img = document.createElement('img');
+      img.className = 'avatar-img';
+      img.src = 'assets/maame-avatar-128.webp';
+      img.alt = 'Maame Serwaa, TraffiAlert GH helper';
+      img.width = 26; img.height = 26;
+      img.onerror = function () { img.src = 'assets/maame-avatar-128.png'; };
+      w.appendChild(img);
+      return w;
+    }
+
+    function addMsg(text, who) {
+      var row = document.createElement('div');
+      row.className = 'msg-row ' + who;
+      if (who === 'bot') row.appendChild(avatarThumb());
+      var d = document.createElement('div');
+      d.className = 'msg ' + who;
+      d.textContent = text;
+      row.appendChild(d);
+      msgs.appendChild(row);
+      msgs.scrollTop = msgs.scrollHeight;
+    }
+
+    function renderChips() {
+      chipsEl.innerHTML = '';
+      CHIPS.forEach(function (c) {
+        var b = document.createElement('button');
+        b.type = 'button'; b.className = 'chip'; b.textContent = c.label;
+        b.addEventListener('click', function () { ask(c.q); });
+        chipsEl.appendChild(b);
+      });
+    }
+
+    function ask(q) {
+      var text = (q || '').trim();
+      if (!text) return;
+      addMsg(text, 'user');
+      setTimeout(function () { addMsg(answerFor(text), 'bot'); }, 220);
+    }
+
+    function openPanel() {
+      panel.classList.add('open');
+      bubble.setAttribute('aria-expanded', 'true');
+      if (!greeted) {
+        addMsg("Akwaaba! I'm Maame Serwaa, your TraffiAlert GH helper. Ask me about the free app, install steps, phones, driving safety, Premium, or iOS — or tap a quick reply.", 'bot');
+        greeted = true;
+      }
+      renderChips();
+      syncWhatsApp();
+      setTimeout(function () { input.focus(); }, 50);
+    }
+
+    function closePanel() {
+      panel.classList.remove('open');
+      bubble.setAttribute('aria-expanded', 'false');
+      bubble.focus();
+    }
+
+    bubble.addEventListener('click', function () {
+      if (panel.classList.contains('open')) closePanel(); else openPanel();
+    });
+    closeBtn.addEventListener('click', closePanel);
+    var openBtn = document.getElementById('open-maame');
+    if (openBtn) openBtn.addEventListener('click', openPanel);
+    form.addEventListener('submit', function (e) {
+      e.preventDefault();
+      var v = input.value; input.value = ''; ask(v);
+    });
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape' && panel.classList.contains('open')) closePanel();
+    });
+    syncWhatsApp();
+
+    // Scroll reveal
+    var els = document.querySelectorAll('.reveal');
+    if ('IntersectionObserver' in window) {
+      var io = new IntersectionObserver(function (entries) {
+        entries.forEach(function (en) {
+          if (en.isIntersecting) { en.target.classList.add('in'); io.unobserve(en.target); }
+        });
+      }, { threshold: 0.12 });
+      els.forEach(function (el) { io.observe(el); });
+    } else {
+      els.forEach(function (el) { el.classList.add('in'); });
+    }
+
+    // Hide sticky pill when hero CTA is visible
+    var sticky = document.getElementById('sticky-dl');
+    var heroCta = document.getElementById('download-btn');
+    if (sticky && heroCta && 'IntersectionObserver' in window) {
+      var sio = new IntersectionObserver(function (entries) {
+        entries.forEach(function (en) {
+          sticky.style.opacity = en.isIntersecting ? '0' : '1';
+          sticky.style.pointerEvents = en.isIntersecting ? 'none' : 'auto';
+        });
+      }, { threshold: 0.4 });
+      sio.observe(heroCta);
+    }
+  })();
+  </script>
+  <script>
+  (function () {
+    fetch('https://api.github.com/repos/TraffiAlertGH/traffialert-site/releases/latest', {
+      headers: { 'Accept': 'application/vnd.github+json' }
+    }).then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (data) {
+        if (!data || !data.tag_name) return;
+        var el = document.getElementById('app-version');
+        if (!el) return;
+        el.hidden = false;
+        el.textContent = 'Current version: ' + data.tag_name.replace(/^v/, '');
+      }).catch(function () {});
+  })();
+  </script>
+</body>
+</html>
