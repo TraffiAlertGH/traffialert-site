@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Get Premium — TraffiAlert GH</title>
+  <meta name="description" content="Pay for TraffiAlert GH Premium with Mobile Money." />
+  <meta name="robots" content="noindex" />
+  <meta name="theme-color" content="#000000" />
+  <link rel="canonical" href="https://traffialert.com/pay.html" />
+  <link rel="icon" href="assets/favicon.ico" sizes="any" />
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png" />
+  <link rel="apple-touch-icon" href="assets/apple-touch-icon.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700&family=Space+Grotesk:wght@600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #050505; --gold: #FCD116; --red: #CE1126; --green: #006B3F;
+      --text: #f4f4f5; --muted: #a1a1aa;
+      --glass: rgba(255,255,255,0.07); --glass-border: rgba(255,255,255,0.14);
+      --font: "Sora", system-ui, sans-serif; --display: "Space Grotesk", "Sora", system-ui, sans-serif;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg); color: var(--text); font-family: var(--font);
+      line-height: 1.65; min-height: 100%; -webkit-font-smoothing: antialiased;
+    }
+    .bg-stage {
+      position: fixed; inset: 0; z-index: -2; pointer-events: none;
+      background: radial-gradient(900px 600px at 0% 0%, #1a0a0c 0%, transparent 55%),
+                  radial-gradient(700px 500px at 100% 80%, #0a1a12 0%, transparent 50%), #050505;
+    }
+    .blob { position: fixed; z-index: -1; pointer-events: none; border-radius: 50%; filter: blur(70px); opacity: 0.3; }
+    .blob-r { width: 280px; height: 280px; background: var(--red); top: -40px; left: -60px; }
+    .blob-n { width: 260px; height: 260px; background: var(--green); bottom: 10%; right: -40px; }
+    a { color: var(--gold); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    .wrap { max-width: 720px; margin: 0 auto; padding: 1.5rem 1.15rem 3rem; }
+    .back { display: inline-flex; margin-bottom: 1.1rem; font-weight: 600; font-size: 0.95rem; }
+    .glass {
+      background: var(--glass); border: 1px solid var(--glass-border); border-radius: 18px;
+      padding: 1.15rem 1.2rem; margin: 1rem 0;
+      -webkit-backdrop-filter: blur(18px); backdrop-filter: blur(18px);
+      box-shadow: 0 8px 28px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.12);
+    }
+    @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+      .glass { background: rgba(18,18,20,0.94); }
+    }
+    .brand-row { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.75rem; }
+    .brand-row img { width: 48px; height: 48px; border-radius: 12px; border: 1px solid var(--glass-border); }
+    h1 { font-family: var(--display); color: var(--gold); font-size: 1.55rem; margin-bottom: 0.2rem; }
+    .updated { color: var(--muted); font-size: 0.88rem; margin-bottom: 1rem; }
+    .kente { display: flex; width: 88px; height: 3px; border-radius: 2px; overflow: hidden; margin-bottom: 1.1rem; }
+    .kente span { flex: 1; }
+    .kente span:nth-child(1) { background: var(--red); }
+    .kente span:nth-child(2) { background: var(--gold); }
+    .kente span:nth-child(3) { background: var(--green); }
+    h2 { font-family: var(--display); font-size: 1.08rem; margin: 1.4rem 0 0.4rem; color: var(--gold); }
+    p { margin-bottom: 0.75rem; }
+    ul { margin: 0 0 0.75rem 1.2rem; }
+    li { margin-bottom: 0.35rem; color: var(--muted); }
+    footer { border-top: 1px solid var(--glass-border); margin-top: 2rem; padding-top: 1rem; color: var(--muted); font-size: 0.88rem; }
+
+    .plans { display: grid; gap: 0.75rem; margin: 0.5rem 0 1rem; }
+    .plan { display: flex; gap: 0.8rem; align-items: flex-start; cursor: pointer; margin: 0; padding: 1rem 1.05rem; }
+    .plan input { margin-top: 0.35rem; accent-color: #FCD116; width: 1.15rem; height: 1.15rem; flex: none; }
+    .plan.sel { border-color: var(--gold); box-shadow: 0 0 0 1px var(--gold), 0 8px 28px rgba(0,0,0,0.4); }
+    .plan .name { font-weight: 700; }
+    .plan .price { font-family: var(--display); font-size: 1.35rem; font-weight: 700; color: var(--gold); }
+    .plan .price small { font-size: 0.85rem; color: var(--muted); font-weight: 600; }
+    .plan .note { color: var(--muted); font-size: 0.9rem; }
+    .tag { display: inline-block; font-size: 0.72rem; font-weight: 700; background: var(--green); color: #fff; padding: 0.1rem 0.5rem; border-radius: 999px; margin-left: 0.35rem; vertical-align: middle; }
+    label.f { display: block; font-weight: 600; margin: 0.8rem 0 0.3rem; }
+    label.f small { color: var(--muted); font-weight: 400; }
+    input.t { width: 100%; font: inherit; font-size: 1.05rem; padding: 0.75rem 0.85rem; border-radius: 12px; border: 1px solid var(--glass-border); background: rgba(0,0,0,0.45); color: var(--text); }
+    input.t:focus { outline: 2px solid var(--gold); outline-offset: 1px; }
+    .btn { display: block; width: 100%; margin-top: 1.1rem; font: inherit; font-weight: 700; font-size: 1.08rem; padding: 0.9rem; border-radius: 14px; border: 0; background: var(--gold); color: #111; cursor: pointer; }
+    .btn:disabled { opacity: 0.55; cursor: progress; }
+    .btn.ghost { background: transparent; color: var(--gold); border: 1px solid var(--gold); font-size: 0.98rem; padding: 0.7rem; }
+    .msg { margin-top: 0.9rem; padding: 0.75rem 0.9rem; border-radius: 12px; font-size: 0.95rem; display: none; }
+    .msg.show { display: block; }
+    .msg.err { background: rgba(206,17,38,0.18); border: 1px solid rgba(206,17,38,0.6); }
+    .msg.info { background: rgba(255,255,255,0.06); border: 1px solid var(--glass-border); }
+    .code-box { font-family: var(--display); font-size: 1.6rem; letter-spacing: 0.08em; color: var(--gold); text-align: center; padding: 0.9rem; border: 1px dashed var(--gold); border-radius: 14px; margin: 0.6rem 0; user-select: all; word-break: break-all; }
+    .steps { margin: 0.6rem 0 0 1.2rem; }
+    .steps li { color: var(--text); }
+    .momo { color: var(--muted); font-size: 0.9rem; margin-top: 0.8rem; }
+    .testbar { display: none; background: rgba(252,209,22,0.14); border: 1px solid rgba(252,209,22,0.5); color: var(--gold); border-radius: 12px; padding: 0.55rem 0.8rem; font-size: 0.9rem; font-weight: 600; margin-bottom: 0.8rem; }
+    .testbar.show { display: block; }
+    details summary { cursor: pointer; color: var(--gold); font-weight: 600; }
+    [hidden] { display: none !important; }
+    @media (prefers-reduced-motion: reduce) { .blob { display: none; } }
+  </style>
+</head>
+<body>
+  <div class="bg-stage" aria-hidden="true"></div>
+  <div class="blob blob-r" aria-hidden="true"></div>
+  <div class="blob blob-n" aria-hidden="true"></div>
+  <div class="wrap">
+    <a class="back" href="./">&larr; TraffiAlert GH</a>
+    <div class="brand-row">
+      <img src="assets/apple-touch-icon.png" width="48" height="48" alt="" />
+      <div>
+        <h1>Get TraffiAlert Premium</h1>
+        <p class="updated" style="margin:0">Pay with Mobile Money. Get your Premium code straight away.</p>
+      </div>
+    </div>
+    <div class="kente" aria-hidden="true"><span></span><span></span><span></span></div>
+
+    <div id="testbar" class="testbar" role="status">Practice mode: no real money is taken right now.</div>
+
+    <section id="buy">
+      <form id="pay-form" novalidate>
+        <div class="plans" role="radiogroup" aria-label="Choose a plan">
+          <label class="plan glass sel">
+            <input type="radio" name="plan" value="monthly" checked />
+            <span><span class="name">Monthly</span><br /><span class="price">GH₵12 <small>/ month</small></span><br /><span class="note">30 days of Premium.</span></span>
+          </label>
+          <label class="plan glass">
+            <input type="radio" name="plan" value="yearly" />
+            <span><span class="name">Yearly</span><span class="tag">Save GH₵44</span><br /><span class="price">GH₵100 <small>/ year</small></span><br /><span class="note">365 days of Premium.</span></span>
+          </label>
+          <label class="plan glass">
+            <input type="radio" name="plan" value="founding" />
+            <span><span class="name">Founding Driver</span><br /><span class="price">GH₵199 <small>one time</small></span><br /><span class="note">Premium for life. Only for the first 10,000 drivers.</span></span>
+          </label>
+        </div>
+
+        <label class="f" for="phone">Your phone number</label>
+        <input class="t" id="phone" name="phone" type="tel" inputmode="tel" autocomplete="tel" placeholder="024 123 4567" required />
+        <label class="f" for="email">Email for your receipt <small>(optional)</small></label>
+        <input class="t" id="email" name="email" type="email" inputmode="email" autocomplete="email" placeholder="you@example.com" />
+
+        <button class="btn" id="pay-btn" type="submit">Pay GH₵12 with MoMo</button>
+        <div id="pay-msg" class="msg" role="alert"></div>
+        <p class="momo">MTN MoMo, Telecel Cash and AirtelTigo Money. Bank card also works. Payments are collected by <strong>Medit USA LTD</strong> through Paystack.</p>
+      </form>
+    </section>
+
+    <section id="done" class="glass" hidden>
+      <h2 style="margin-top:0">Payment received. Thank you!</h2>
+      <p>Your Premium code:</p>
+      <div id="code" class="code-box"></div>
+      <button class="btn ghost" id="copy-btn" type="button">Copy code</button>
+      <p style="margin-top:1rem"><strong>To turn on Premium:</strong></p>
+      <ol class="steps">
+        <li>Open TraffiAlert on your phone.</li>
+        <li>Go to <strong>Settings</strong>, then <strong>Premium</strong>.</li>
+        <li>Type or paste the code and tap <strong>Activate</strong>.</li>
+      </ol>
+      <p class="momo">Keep this code safe. It works on one phone. Your payment number is <strong id="done-ref"></strong>. With it and your phone number you can get the code again below.</p>
+    </section>
+
+    <section id="waiting" class="glass" hidden>
+      <h2 style="margin-top:0">Checking your payment…</h2>
+      <p id="waiting-text">Approve the payment on your phone if you have not done so yet. This page will update by itself.</p>
+    </section>
+
+    <div class="glass">
+      <details id="find">
+        <summary>Lost your code?</summary>
+        <form id="find-form" novalidate style="margin-top:0.6rem">
+          <label class="f" for="find-ref">Payment number <small>(starts with TA-)</small></label>
+          <input class="t" id="find-ref" type="text" autocapitalize="characters" autocomplete="off" placeholder="TA-…" />
+          <label class="f" for="find-phone">Phone number you paid with on this page</label>
+          <input class="t" id="find-phone" type="tel" inputmode="tel" autocomplete="tel" placeholder="024 123 4567" />
+          <button class="btn ghost" type="submit">Show my code</button>
+          <div id="find-msg" class="msg" role="alert"></div>
+        </form>
+      </details>
+    </div>
+
+    <h2>Good to know</h2>
+    <ul>
+      <li>Monthly and Yearly start when you activate the code in the app. Buying again before it ends adds the time on top.</li>
+      <li>There is no automatic renewal. You only pay when you choose to.</li>
+      <li>Need help or a refund? Email <a href="mailto:traffialertgh@gmail.com">traffialertgh@gmail.com</a> with your payment number.</li>
+      <li>See our <a href="privacy.html#payments">Privacy Policy</a> for how payment details are handled.</li>
+    </ul>
+
+    <footer>
+      <a href="./">Home</a> · <a href="privacy.html">Privacy</a> · <a href="mailto:traffialertgh@gmail.com">traffialertgh@gmail.com</a>
+      <p style="margin-top:0.6rem;margin-bottom:0">© 2026 TraffiAlert GH · Payments by Medit USA LTD</p>
+    </footer>
+  </div>
+
+  <script src="https://js.paystack.co/v2/inline.js" defer></script>
+  <script src="assets/pay.js" defer></script>
+</body>
+</html>
