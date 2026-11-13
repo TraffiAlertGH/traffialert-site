@@ -1,0 +1,51 @@
+name: Monitor (self-healing)
+
+# Runs on GitHub's free minutes for public repos: no Grok Bot credits needed.
+# Opens one issue per problem (label "monitor") and closes it when fixed.
+# Payment alerts are emailed to meditusa2023@gmail.com once GMAIL_APP_PASSWORD is added.
+
+on:
+  schedule:
+    - cron: '17 */3 * * *'   # every 3 hours (UTC = Accra time)
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+  actions: read
+
+concurrency:
+  group: monitor
+  cancel-in-progress: false
+
+jobs:
+  monitor:
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: .github/monitor
+      - name: Restore state from the last run
+        uses: actions/cache/restore@v4
+        with:
+          path: .monitor-state
+          key: monitor-state-${{ github.run_id }}
+          restore-keys: monitor-state-
+      - name: Check and fix
+        working-directory: .github/monitor
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          MONITOR_STATE: ${{ github.workspace }}/.monitor-state/state.json
+          PAY_MONITOR_KEY: ${{ secrets.PAY_MONITOR_KEY }}
+          RENDER_DEPLOY_HOOK: ${{ secrets.RENDER_DEPLOY_HOOK }}
+          GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
+          MAIL_FROM: meditusa2023@gmail.com
+          MAIL_TO: meditusa2023@gmail.com
+        run: mkdir -p "$(dirname "$MONITOR_STATE")" && python3 traffialert.py
+      - name: Save state for the next run
+        if: always()
+        uses: actions/cache/save@v4
+        with:
+          path: .monitor-state
+          key: monitor-state-${{ github.run_id }}
