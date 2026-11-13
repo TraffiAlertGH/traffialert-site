@@ -5,3 +5,4 @@ config.js
 .env
 .env.*
 !.env.example
+__pycache__/
