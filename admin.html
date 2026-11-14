@@ -5,6 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <title>Operations — TraffiAlert GH</title>
   <meta name="robots" content="noindex, nofollow" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src https://aayygoxexboduevbmjgi.supabase.co https://traffialert-pay.onrender.com; manifest-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'" />
+  <meta name="referrer" content="no-referrer" />
   <meta name="theme-color" content="#07080a" />
   <link rel="manifest" href="assets/admin.webmanifest" />
   <meta name="mobile-web-app-capable" content="yes" />
@@ -240,7 +242,7 @@
         </div>
       </div>
       <div class="kente" aria-hidden="true"><span></span><span></span><span></span></div>
-      <p class="lede">You don’t have access.</p>
+      <p class="lede">You’re signed in, but this account isn’t an admin for TraffiAlert GH, so the dashboard stays locked. Sign out and sign in with the admin account.</p>
       <button class="btn" id="denied-out" type="button">Sign out</button>
     </div>
   </div>
@@ -277,7 +279,7 @@
         <h3>New devices</h3>
         <p class="meta">Daily first opens · last 30 days</p>
         <div class="chart-wrap">
-          <canvas id="chart-installs" aria-label="Daily new devices"></canvas>
+          <canvas id="chart-installs" role="img" aria-label="Daily new devices"></canvas>
           <div class="empty-overlay" id="empty-installs"><span>Waiting for the first tracked sessions</span></div>
         </div>
       </section>
@@ -285,7 +287,7 @@
         <h3>Daily active</h3>
         <p class="meta">Devices seen each day · last 30 days</p>
         <div class="chart-wrap">
-          <canvas id="chart-active" aria-label="Daily active users"></canvas>
+          <canvas id="chart-active" role="img" aria-label="Daily active users"></canvas>
           <div class="empty-overlay" id="empty-active"><span>Waiting for the first tracked sessions</span></div>
         </div>
       </section>
@@ -295,7 +297,7 @@
       <h3>Activity through the day</h3>
       <p class="meta">Unique devices in each hour · last 24 hours, Africa/Accra</p>
       <div class="chart-wrap" style="height:200px;">
-        <canvas id="chart-hourly" aria-label="Hourly activity"></canvas>
+        <canvas id="chart-hourly" role="img" aria-label="Hourly activity"></canvas>
         <div class="empty-overlay" id="empty-hourly"><span>No hourly activity yet</span></div>
       </div>
     </section>
@@ -332,7 +334,7 @@
         <h3>Map</h3>
         <p class="meta">Bubbles sit on town centres and grow with active devices</p>
         <div class="chart-wrap" style="height:340px; max-width:262px; margin:0 auto;">
-          <canvas id="chart-map" aria-label="Map of active devices by town"></canvas>
+          <canvas id="chart-map" role="img" aria-label="Map of active devices by town"></canvas>
           <div class="empty-overlay" id="empty-map"><span>No towns yet</span></div>
         </div>
       </section>
@@ -353,30 +355,30 @@
 
     <div class="section-head">
       <h2>Revenue</h2>
-      <p>Payments are not live yet. These figures stay at GH₵0 until billing starts — nothing here is estimated.</p>
+      <p id="revenue-lede">Checking the payment service…</p>
     </div>
     <div class="rev-grid">
-      <article class="card rev"><div class="label">Total revenue</div><div class="value">GH₵0</div><span class="tag">Not live yet</span></article>
-      <article class="card rev"><div class="label">This month</div><div class="value">GH₵0</div><span class="tag">Africa/Accra</span></article>
-      <article class="card rev"><div class="label">Premium</div><div class="value">GH₵0</div><span class="tag">Not live yet</span></article>
-      <article class="card rev"><div class="label">Founding Driver</div><div class="value">GH₵0</div><span class="tag">Not live yet</span></article>
+      <article class="card rev"><div class="label">Total revenue</div><div class="value" data-rev-value>—</div><span class="tag" data-rev-tag>Checking…</span></article>
+      <article class="card rev"><div class="label">This month</div><div class="value" data-rev-value>—</div><span class="tag">Africa/Accra</span></article>
+      <article class="card rev"><div class="label">Premium</div><div class="value" data-rev-value>—</div><span class="tag" data-rev-tag>Checking…</span></article>
+      <article class="card rev"><div class="label">Founding Driver</div><div class="value" data-rev-value>—</div><span class="tag" data-rev-tag>Checking…</span></article>
     </div>
     <div class="grid-2">
       <section class="card chart-card">
         <h3>Revenue over time</h3>
-        <p class="meta">This chart will fill in when payments go live</p>
+        <p class="meta">This chart will fill in once revenue totals are connected</p>
         <div class="chart-wrap">
-          <canvas id="chart-revenue" aria-label="Revenue over time"></canvas>
-          <div class="empty-overlay" id="empty-revenue"><span>Not live yet</span></div>
+          <canvas id="chart-revenue" role="img" aria-label="Revenue over time"></canvas>
+          <div class="empty-overlay" id="empty-revenue"><span id="empty-revenue-text">Checking…</span></div>
         </div>
       </section>
       <section class="card panel">
         <h3>By product</h3>
         <p class="meta">Premium, Founding Driver, featured listings</p>
         <div class="versions" id="revenue-products">
-          <div class="ver"><span class="name">Premium</span><div class="bar"><i style="width:0%"></i></div><span class="n">GH₵0</span></div>
-          <div class="ver"><span class="name">Founding Driver</span><div class="bar"><i style="width:0%"></i></div><span class="n">GH₵0</span></div>
-          <div class="ver"><span class="name">Featured listings</span><div class="bar"><i style="width:0%"></i></div><span class="n">GH₵0</span></div>
+          <div class="ver"><span class="name">Premium</span><div class="bar"><i style="width:0%"></i></div><span class="n" data-rev-value>—</span></div>
+          <div class="ver"><span class="name">Founding Driver</span><div class="bar"><i style="width:0%"></i></div><span class="n" data-rev-value>—</span></div>
+          <div class="ver"><span class="name">Featured listings</span><div class="bar"><i style="width:0%"></i></div><span class="n" data-rev-value>—</span></div>
         </div>
         <p class="blank" style="padding-top:1rem;">Slots are ready for live totals. No test or sample transactions are shown.</p>
       </section>

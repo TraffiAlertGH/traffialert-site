@@ -16,6 +16,9 @@
   const url = typeof cfg.supabaseUrl === "string" ? cfg.supabaseUrl.replace(/\/$/, "") : "";
   const anon = typeof cfg.supabaseAnonKey === "string" ? cfg.supabaseAnonKey : "";
   const configured = /^https:\/\//.test(url) && anon.length > 20 && !anon.includes("YOUR_PUBLIC_ANON_KEY");
+  const payApi = (typeof cfg.payApi === "string" && /^https:\/\//.test(cfg.payApi) ? cfg.payApi : "https://traffialert-pay.onrender.com").replace(/\/$/, "");
+  // Set once a session has been accepted by Supabase on this page load; until then the dashboard stays hidden.
+  let verified = false;
 
   const charts = {};
   let refreshTimer = null;
@@ -46,15 +49,18 @@
     return new Intl.DateTimeFormat("en-GB", { timeZone: TZ, day: "numeric", month: "short" }).format(d);
   }
 
+  // The session lives in sessionStorage (this tab only, gone when it closes), not localStorage, so it is
+  // not left on the traffialert.com origin where other pages (for example the pay page) also run scripts.
+  try { localStorage.removeItem(SESSION_KEY); } catch (e) { /* clear sessions saved by older versions */ }
   function loadSession() {
-    try { return JSON.parse(localStorage.getItem(SESSION_KEY) || "null"); }
+    try { return JSON.parse(sessionStorage.getItem(SESSION_KEY) || "null"); }
     catch { return null; }
   }
   function saveSession(session) {
-    localStorage.setItem(SESSION_KEY, JSON.stringify(session));
+    try { sessionStorage.setItem(SESSION_KEY, JSON.stringify(session)); } catch (e) { /* storage blocked */ }
   }
   function clearSession() {
-    localStorage.removeItem(SESSION_KEY);
+    try { sessionStorage.removeItem(SESSION_KEY); } catch (e) { /* storage blocked */ }
   }
 
   async function authFetch(path, body) {
@@ -86,7 +92,7 @@
     return result.data;
   }
 
-  async function getStats(session) {
+  async function getStats(session, retried) {
     const res = await fetch(url + "/rest/v1/rpc/get_app_admin_stats", {
       method: "POST",
       headers: {
@@ -97,9 +103,11 @@
       body: "{}"
     });
     if (res.status === 401) {
+      // Refresh the token and retry once; a second 401 means the session is no good.
+      if (retried) return { kind: "auth" };
       const next = await refreshSession(session);
       if (!next) return { kind: "auth" };
-      return getStats(next);
+      return getStats(next, true);
     }
     const payload = await res.json().catch(function () { return null; });
     if (!res.ok) {
@@ -214,6 +222,33 @@
     });
   }
 
+  // The revenue section follows the payment service's own mode instead of a hardcoded "not live" line.
+  let payMode = null;
+  function setRevenueText(lede, tag, value) {
+    document.getElementById("revenue-lede").textContent = lede;
+    document.querySelectorAll("[data-rev-tag]").forEach(function (el) { el.textContent = tag; });
+    document.querySelectorAll("[data-rev-value]").forEach(function (el) { el.textContent = value; });
+    document.getElementById("empty-revenue-text").textContent = tag;
+  }
+  function renderRevenueMode() {
+    if (payMode === "live") {
+      setRevenueText("Payments are live on traffialert.com/pay.html. Revenue totals are not connected to this dashboard yet, so no figures are shown here.", "Not connected yet", "—");
+    } else if (payMode === "test") {
+      setRevenueText("The payment service is in practice (test) mode, so no real money has been taken. Figures stay at GH₵0 until it goes live.", "Practice mode", "GH₵0");
+    } else if (payMode === "unknown") {
+      setRevenueText("Could not reach the payment service to check whether payments are live. No figures are shown.", "Status unknown", "—");
+    } else {
+      setRevenueText("Checking the payment service…", "Checking…", "—");
+    }
+  }
+  function loadPayMode() {
+    return fetch(payApi + "/healthz", { cache: "no-store" })
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (j) { payMode = j && (j.mode === "live" || j.mode === "test") ? j.mode : "unknown"; })
+      .catch(function () { payMode = "unknown"; })
+      .then(renderRevenueMode);
+  }
+
   function renderRevenuePlaceholder() {
     const months = [];
     const now = new Date();
@@ -223,6 +258,7 @@
     }
     makeLine("chart-revenue", months, [0, 0, 0, 0, 0, 0], "rgba(252,209,22,0.55)", "rgba(252,209,22,0.08)");
     setEmpty("empty-revenue", true);
+    renderRevenueMode();
   }
 
   function renderStats(data) {
@@ -310,7 +346,13 @@
     });
     if (res.status === 404) return { kind: "missing" };
     const payload = await res.json().catch(function () { return null; });
-    if (!res.ok) return { kind: "error" };
+    if (!res.ok) {
+      const message = payload && (payload.message || payload.error || payload.hint);
+      if (res.status === 401 || res.status === 403 || (typeof message === "string" && /not authorized/i.test(message))) {
+        return { kind: "denied" };
+      }
+      return { kind: "error" };
+    }
     return { kind: "ok", data: payload };
   }
 
@@ -449,7 +491,9 @@
         root.textContent = "";
         const p = document.createElement("p");
         p.className = "blank";
-        p.textContent = result.kind === "missing" ? "Location stats are not switched on yet." : "Could not load locations. Try again shortly.";
+        p.textContent = result.kind === "missing" ? "Location stats are not switched on yet."
+          : result.kind === "denied" ? "This account is not allowed to see location stats."
+          : "Could not load locations. Try again shortly.";
         root.appendChild(p);
       });
       return;
@@ -470,9 +514,16 @@
     if (!session || !session.access_token) { setSignedOut(); return; }
     document.getElementById("who").textContent = sessionEmail(session);
     const result = await getStats(session);
-    if (result.kind === "auth") { setSignedOut(); gateMsg.textContent = "Please sign in again."; return; }
-    if (result.kind === "denied") { setDenied(); return; }
+    if (result.kind === "auth") { verified = false; setSignedOut(); gateMsg.className = "msg"; gateMsg.textContent = "Please sign in again."; return; }
+    if (result.kind === "denied") { verified = false; setDenied(); return; }
     if (result.kind !== "ok") {
+      if (!verified) {
+        // The session has not been confirmed yet: keep the dashboard hidden.
+        hide(app); hide(denied); show(gate); setGateBusy(false);
+        gateMsg.className = "msg";
+        gateMsg.textContent = "Could not reach the server to check your sign-in. Try again shortly.";
+        return;
+      }
       hide(gate); hide(denied); show(app);
       document.getElementById("updated").textContent = "Could not load the dashboard. Try again shortly.";
       document.getElementById("live-dot").classList.remove("live");
@@ -480,9 +531,19 @@
       renderRevenuePlaceholder();
       return;
     }
+    const firstLoad = !verified;
+    verified = true;
     hide(gate); hide(denied); show(app);
     renderStats(result.data || {});
     loadLocations().catch(function () {});
+    if (firstLoad || payMode === null || payMode === "unknown") loadPayMode();
+  }
+
+  const CHECKING_TEXT = "Checking your sign-in…";
+  function setGateBusy(on) {
+    form.querySelectorAll("input, button").forEach(function (el) { el.disabled = on; });
+    if (on) { gateMsg.className = "msg info"; gateMsg.textContent = CHECKING_TEXT; }
+    else if (gateMsg.textContent === CHECKING_TEXT) { gateMsg.textContent = ""; }
   }
 
   function armRefresh() {
@@ -504,14 +565,13 @@
       .then(function (session) {
         passwordEl.value = "";
         saveSession(session);
-        hide(gate); show(app);
-        document.getElementById("who").textContent = sessionEmail(session);
         armRefresh();
         return loadDashboard();
       })
       .catch(function (err) {
         passwordEl.value = "";
         const raw = err && err.message ? String(err.message) : "";
+        gateMsg.className = "msg";
         if (raw === "credentials") gateMsg.textContent = "Email or password is incorrect.";
         else gateMsg.textContent = scrub("Could not sign in. Try again.", password);
       })
@@ -538,8 +598,13 @@
   }
 
   if (loadSession()) {
-    hide(gate); show(app);
+    // Keep the dashboard hidden until Supabase accepts the saved session.
+    setGateBusy(true);
     armRefresh();
-    loadDashboard().catch(function () { setSignedOut(); });
+    loadDashboard()
+      .catch(function () {
+        if (!verified) { gateMsg.className = "msg"; gateMsg.textContent = "Could not reach the server to check your sign-in. Try again shortly."; }
+      })
+      .then(function () { setGateBusy(false); });
   }
 })();
