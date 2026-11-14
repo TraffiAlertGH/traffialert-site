@@ -2,7 +2,8 @@
 
 Checks the public site, APK downloads, the pay server (and keeps it warm), Supabase, routing,
 and Premium payments. Fixes what it safely can, keeps one GitHub issue per problem, and emails
-meditusa2023@gmail.com about PAYMENTS only.
+the MONITOR_EMAIL address about PAYMENTS only. The repo is public, so the run summary and issues
+only say pass/fail: payment counts, amounts and references go in the private email.
 """
 from __future__ import annotations
 
@@ -148,9 +149,6 @@ def payments(pay_ok: bool) -> Result:
     if status != 200 or not isinstance(j, dict):
         return Result("Payments: new / failed / stuck", False, f"payment summary answered {status or err}")
     state["pay_since"] = started
-    c = j.get("counts", {})
-    detail = (f"{j.get('mode')} mode since {since}: {c.get('success', 0)} paid, {c.get('failed', 0)} failed, "
-              f"{c.get('abandoned', 0)} abandoned, {c.get('pending', 0)} pending")
     live = [p for p in j.get("payments", []) if p.get("live")]
     if live:
         total = sum(float(p.get("amount_ghs", 0)) for p in live)
@@ -168,11 +166,10 @@ def payments(pay_ok: bool) -> Result:
         emails.append(("TraffiAlert payments: payment needs attention",
                        "These payments are stuck or were paid but could not be given a code yet. The monitor retries every run.\n" + "\n".join(lines)))
     state["notified"] = sorted(notified | {p.get("reference") for p in bad_live})[-200:]
-    stuck_now = len(j.get("unrecorded", []))
-    if stuck_now:
-        # Public issue: counts only, never references or numbers.
-        return Result("Payments: new / failed / stuck", False, f"{stuck_now} paid payment(s) could not be recorded yet; retrying each run. {detail}")
-    return Result("Payments: new / failed / stuck", True, detail + (f", {j.get('reconciled', 0)} confirmed" if c.get("success") else ""))
+    if j.get("unrecorded"):
+        # Public issue: no counts, amounts or references (details go in the private email).
+        return Result("Payments: new / failed / stuck", False, "some paid payments could not be recorded yet; retrying each run (details emailed)")
+    return Result("Payments: new / failed / stuck", True, "checked" + (" (details emailed)" if live or failed_live or bad_live else ""))
 
 
 def main() -> int:
@@ -189,7 +186,9 @@ def main() -> int:
         results.append(fut_payments.result())
     actions = sync_issues(results)
     for subject, body in emails:
-        notes.append(send_email(subject, body))
+        # Keep the subject (it can carry amounts) out of the public run summary.
+        result = send_email(subject, body)
+        notes.append("payment alert emailed" if result.startswith("emailed") else result)
     state["last_run"] = now_iso()
     save_state(state)
     write_summary(results, actions + notes)
