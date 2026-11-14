@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Page not found — TraffiAlert GH</title>
+  <meta name="robots" content="noindex" />
+  <meta name="theme-color" content="#000000" />
+  <!-- GitHub Pages serves this page for any missing path, so every link here is absolute. -->
+  <link rel="icon" href="/assets/favicon.ico" sizes="any" />
+  <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32.png" />
+  <link rel="apple-touch-icon" href="/assets/apple-touch-icon.png" />
+  <style>
+    :root { --bg: #050505; --gold: #FCD116; --red: #CE1126; --green: #006B3F; --text: #f4f4f5; --muted: #a1a1aa; --glass-border: rgba(255,255,255,0.14); }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { min-height: 100%; }
+    body {
+      display: grid; place-items: center; min-height: 100vh; padding: 2rem 1.15rem;
+      background: radial-gradient(900px 600px at 0% 0%, #1a0a0c 0%, transparent 55%),
+                  radial-gradient(700px 500px at 100% 80%, #0a1a12 0%, transparent 50%), var(--bg);
+      color: var(--text); font-family: "Sora", system-ui, -apple-system, "Segoe UI", sans-serif; line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+    }
+    main {
+      width: min(440px, 100%); text-align: center; padding: 2rem 1.5rem;
+      background: rgba(255,255,255,0.07); border: 1px solid var(--glass-border); border-radius: 18px;
+      box-shadow: 0 8px 28px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.12);
+    }
+    img { border-radius: 14px; border: 1px solid var(--glass-border); }
+    .kente { display: flex; width: 88px; height: 3px; border-radius: 2px; overflow: hidden; margin: 1rem auto; }
+    .kente span { flex: 1; }
+    .kente span:nth-child(1) { background: var(--red); }
+    .kente span:nth-child(2) { background: var(--gold); }
+    .kente span:nth-child(3) { background: var(--green); }
+    h1 { color: var(--gold); font-size: 1.5rem; margin-top: 0.75rem; }
+    p { color: var(--muted); margin-bottom: 1.25rem; }
+    a.btn { display: inline-block; background: var(--gold); color: #111; font-weight: 700; text-decoration: none; padding: 0.75rem 1.25rem; border-radius: 12px; }
+    a.btn:focus-visible { outline: 2px solid #fff; outline-offset: 3px; }
+    nav { margin-top: 1.25rem; font-size: 0.9rem; }
+    nav a { color: var(--gold); }
+  </style>
+</head>
+<body>
+  <main>
+    <img src="/assets/apple-touch-icon.png" width="64" height="64" alt="" />
+    <h1>Page not found</h1>
+    <div class="kente" aria-hidden="true"><span></span><span></span><span></span></div>
+    <p>This road doesn’t lead anywhere. The page may have moved, or the link may be wrong.</p>
+    <a class="btn" href="/">Go to TraffiAlert GH</a>
+    <nav><a href="/privacy.html">Privacy Policy</a> · <a href="mailto:traffialertgh@gmail.com">traffialertgh@gmail.com</a></nav>
+  </main>
+</body>
+</html>
