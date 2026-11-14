@@ -1,5 +1,6 @@
-# Local admin runtime config (public anon key only — never a service role key)
-config.js
+# config.js is intentionally committed: GitHub Pages serves it to admin.html.
+# It must only ever hold the PUBLIC anon key, never a service role key.
+# (Listing it here has no effect while it is tracked, so it is not listed.)
 
 # Local env files
 .env

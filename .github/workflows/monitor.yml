@@ -2,7 +2,8 @@ name: Monitor (self-healing)
 
 # Runs on GitHub's free minutes for public repos: no Grok Bot credits needed.
 # Opens one issue per problem (label "monitor") and closes it when fixed.
-# Payment alerts are emailed to meditusa2023@gmail.com once GMAIL_APP_PASSWORD is added.
+# Payment alerts are emailed to the address in the MONITOR_EMAIL secret once GMAIL_APP_PASSWORD is added.
+# Run logs and issues are public: they carry pass/fail only, never payment counts, amounts or references.
 
 on:
   schedule:
@@ -40,8 +41,8 @@ jobs:
           PAY_MONITOR_KEY: ${{ secrets.PAY_MONITOR_KEY }}
           RENDER_DEPLOY_HOOK: ${{ secrets.RENDER_DEPLOY_HOOK }}
           GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
-          MAIL_FROM: meditusa2023@gmail.com
-          MAIL_TO: meditusa2023@gmail.com
+          MAIL_FROM: ${{ secrets.MONITOR_EMAIL }}
+          MAIL_TO: ${{ secrets.MONITOR_EMAIL }}
         run: mkdir -p "$(dirname "$MONITOR_STATE")" && python3 traffialert.py
       - name: Save state for the next run
         if: always()
